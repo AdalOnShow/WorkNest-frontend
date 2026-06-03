@@ -4,7 +4,7 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { ArrowRight } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -31,7 +31,6 @@ const getErrorMessage = (error: unknown): string => {
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [formError, setFormError] = useState("");
   const {
@@ -47,7 +46,7 @@ export default function LoginPage() {
 
     try {
       await login(values);
-      router.replace(searchParams.get("redirect") || "/dashboard");
+      router.replace("/dashboard");
     } catch (error) {
       setFormError(getErrorMessage(error));
     }

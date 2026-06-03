@@ -1,27 +1,27 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useProject } from "@/hooks/useProjects";
+import { AddMemberForm } from "@/components/projects/add-member-form";
+import { DeleteProjectDialog } from "@/components/projects/delete-project-dialog";
+import { EditProjectSheet } from "@/components/projects/edit-project-sheet";
+import { MemberList } from "@/components/projects/member-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useProject } from "@/hooks/useProjects";
+import { format } from "date-fns";
 import {
-  Edit2,
-  Trash2,
-  Calendar,
-  FolderKanban,
-  CheckCircle2,
   Archive,
   ArrowLeft,
+  Calendar,
+  CheckCircle2,
+  Edit2,
+  FolderKanban,
+  Trash2,
 } from "lucide-react";
-import { format } from "date-fns";
-import { useState } from "react";
-import { EditProjectSheet } from "@/components/projects/edit-project-sheet";
-import { DeleteProjectDialog } from "@/components/projects/delete-project-dialog";
-import { MemberList } from "@/components/projects/member-list";
-import { AddMemberForm } from "@/components/projects/add-member-form";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -29,8 +29,38 @@ export default function ProjectDetailPage() {
   const router = useRouter();
 
   const { data: project, isLoading, error } = useProject(id);
+  const [showEditSheet, setShowEditSheet] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const editTimeoutRef = useRef<number | null>(null);
+
+  const openEditSheet = () => {
+    if (editTimeoutRef.current) {
+      window.clearTimeout(editTimeoutRef.current);
+    }
+    setShowEditSheet(true);
+    editTimeoutRef.current = window.setTimeout(() => {
+      setEditOpen(true);
+    }, 120);
+  };
+
+  const closeEditSheet = () => {
+    if (editTimeoutRef.current) {
+      window.clearTimeout(editTimeoutRef.current);
+    }
+    setEditOpen(false);
+    editTimeoutRef.current = window.setTimeout(() => {
+      setShowEditSheet(false);
+    }, 240);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (editTimeoutRef.current) {
+        window.clearTimeout(editTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -126,7 +156,7 @@ export default function ProjectDetailPage() {
 
         {isOwner && (
           <div className="flex shrink-0 items-center gap-2">
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
+            <Button variant="outline" onClick={openEditSheet}>
               <Edit2 className="mr-2 size-4" />
               Edit
             </Button>
@@ -201,11 +231,11 @@ export default function ProjectDetailPage() {
         </TabsContent>
       </Tabs>
 
-      {editOpen && (
+      {showEditSheet && (
         <EditProjectSheet
           project={project}
           open={editOpen}
-          onClose={() => setEditOpen(false)}
+          onClose={closeEditSheet}
         />
       )}
       {deleteOpen && (

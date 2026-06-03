@@ -1,11 +1,23 @@
-import { useProjectMembers, useRemoveMember } from "@/hooks/useProjects";
-import { Skeleton } from "@/components/ui/skeleton";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, UserCircle2 } from "lucide-react";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProjectMembers, useRemoveMember } from "@/hooks/useProjects";
 import { useAuth } from "@/providers/AuthProvider";
+import { UserCircle2, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface MemberListProps {
   projectId: string;
@@ -14,22 +26,36 @@ interface MemberListProps {
 
 export function MemberList({ projectId, isOwner }: MemberListProps) {
   const { data: members, isLoading } = useProjectMembers(projectId);
-  const { mutate: removeMember } = useRemoveMember(projectId);
-  const { user } = useAuth();
+  const removeMemberMutation = useRemoveMember(projectId);
 
-  const handleRemove = (memberId: string) => {
-    if (confirm("Are you sure you want to remove this member?")) {
-      removeMember(memberId, {
-        onSuccess: () => {
-          toast.success("Member removed");
-        },
-        onError: (error: any) => {
-          toast.error(
-            error.response?.data?.message || "Failed to remove member",
-          );
-        },
-      });
-    }
+  const isRemovingMember = removeMemberMutation.status === "pending";
+  const { user } = useAuth();
+  const [selectedMember, setSelectedMember] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleRemoveClick = (memberId: string, memberName: string) => {
+    setSelectedMember({ id: memberId, name: memberName });
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (!selectedMember) return;
+
+    removeMemberMutation.mutate(selectedMember.id, {
+      onSuccess: () => {
+        toast.success("Member removed");
+        setConfirmOpen(false);
+        setSelectedMember(null);
+      },
+      onError: (error: any) => {
+        toast.error(
+          error.response?.data?.message || "Failed to remove member",
+        );
+      },
+    });
   };
 
   if (isLoading) {
@@ -39,8 +65,8 @@ export function MemberList({ projectId, isOwner }: MemberListProps) {
           <div key={i} className="flex items-center space-x-4">
             <Skeleton className="size-10 rounded-full" />
             <div className="space-y-2">
-              <Skeleton className="h-4 w-[200px]" />
-              <Skeleton className="h-3 w-[150px]" />
+              <Skeleton className="h-4 w-50" />
+              <Skeleton className="h-3 w-37.5" />
             </div>
           </div>
         ))}
@@ -92,20 +118,59 @@ export function MemberList({ projectId, isOwner }: MemberListProps) {
               {member.role === "PROJECT_MANAGER" ? "Manager" : "Member"}
             </Badge>
 
-            {isOwner && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 text-muted-foreground hover:text-destructive"
-                onClick={() => handleRemove(member.id)}
-                title="Remove member"
-              >
-                <X className="size-4" />
-              </Button>
-            )}
+            {isOwner &&
+              member.role !== "PROJECT_MANAGER" &&
+              member.user.id !== user?.id && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => handleRemoveClick(member.id, member.user.name)}
+                  title="Remove member"
+                >
+                  <X className="size-4" />
+                </Button>
+              )}
           </div>
         </div>
       ))}
+
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedMember(null);
+          }
+          setConfirmOpen(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedMember ? (
+                <>This will remove <strong>{selectedMember.name}</strong> from the project. This action cannot be undone.</>
+              ) : (
+                <>Confirm member removal.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRemovingMember}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleConfirmRemove}
+              disabled={isRemovingMember}
+            >
+              {isRemovingMember ? "Removing..." : "Remove member"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+// removed local stub: useRemoveMember(projectId) from hooks provides the mutation
+
