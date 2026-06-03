@@ -42,11 +42,9 @@ export const authService = {
       formData.append("avatar", data.avatar);
     }
 
-    const response = await api.patch<IApiResponse<{ user: IUser }>>("/users/profile", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    // Do NOT set Content-Type manually — axios sets it automatically with the
+    // correct multipart boundary when the body is a FormData instance.
+    const response = await api.patch<IApiResponse<{ user: IUser }>>("/users/profile", formData);
 
     return unwrapUser(response.data);
   },

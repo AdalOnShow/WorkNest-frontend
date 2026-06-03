@@ -50,7 +50,7 @@ export default function RegisterPage() {
 
     try {
       await registerUser(values);
-      router.replace("/dashboard");
+      router.replace("/onboarding");
     } catch (error) {
       setFormError(getErrorMessage(error));
     }
