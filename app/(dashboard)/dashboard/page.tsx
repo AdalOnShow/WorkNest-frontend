@@ -1,4 +1,6 @@
-import { FolderKanban, ListChecks, Timer, Users } from "lucide-react";
+import { FolderKanban, ListChecks, Timer, Users, Plus } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const stats = [
   { label: "Active projects", value: "0", icon: FolderKanban },
@@ -27,11 +29,20 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h3 className="text-base font-semibold">Next steps</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Project, task, dashboard analytics, and activity modules will populate this area as the next sessions are implemented.
+      <section className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-12 text-center">
+        <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-primary/10">
+          <FolderKanban className="size-6 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold">Create your first project</h3>
+        <p className="mb-6 mt-2 max-w-sm text-sm text-muted-foreground">
+          Get started by creating a project to manage tasks, collaborate with your team, and track your progress.
         </p>
+        <Link href="/projects/new">
+          <Button>
+            <Plus className="mr-2 size-4" />
+            Create Project
+          </Button>
+        </Link>
       </section>
     </div>
   );

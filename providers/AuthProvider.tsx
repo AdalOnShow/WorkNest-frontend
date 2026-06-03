@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import {
@@ -58,7 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleAuthExpired = () => setUser(null);
 
     window.addEventListener("worknest:auth-expired", handleAuthExpired);
-    return () => window.removeEventListener("worknest:auth-expired", handleAuthExpired);
+    return () =>
+      window.removeEventListener("worknest:auth-expired", handleAuthExpired);
   }, []);
 
   const login = useCallback(async (data: ILoginInput): Promise<void> => {
@@ -77,10 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login");
   }, [router]);
 
-  const updateProfile = useCallback(async (data: IUpdateProfileInput): Promise<void> => {
-    const updatedUser = await authService.updateProfile(data);
-    setUser(updatedUser);
-  }, []);
+  const updateProfile = useCallback(
+    async (data: IUpdateProfileInput): Promise<void> => {
+      const updatedUser = await authService.updateProfile(data);
+      setUser(updatedUser);
+    },
+    [],
+  );
 
   const deleteAccount = useCallback(async (): Promise<void> => {
     await authService.deleteAccount();
@@ -103,4 +115,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }
