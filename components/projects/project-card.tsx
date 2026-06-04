@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { EditProjectSheet } from "./edit-project-sheet";
 import { DeleteProjectDialog } from "./delete-project-dialog";
+import { LeaveProjectDialog } from "./leave-project-dialog";
 import { format, isPast, differenceInDays } from "date-fns";
 
 interface ProjectCardProps {
@@ -30,6 +31,7 @@ export function ProjectCard({ project, isOwner }: ProjectCardProps) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -84,7 +86,7 @@ export function ProjectCard({ project, isOwner }: ProjectCardProps) {
               {project.status.toLowerCase()}
             </Badge>
 
-            {isOwner && (
+            {isOwner ? (
               <div onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex size-8 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground">
@@ -99,6 +101,22 @@ export function ProjectCard({ project, isOwner }: ProjectCardProps) {
                       onClick={() => setDeleteOpen(true)}
                     >
                       Delete project
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <div onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex size-8 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground">
+                    <MoreVertical className="size-4 text-muted-foreground" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      onClick={() => setLeaveOpen(true)}
+                    >
+                      Leave project
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -157,6 +175,14 @@ export function ProjectCard({ project, isOwner }: ProjectCardProps) {
           projectName={project.name}
           open={deleteOpen}
           onClose={() => setDeleteOpen(false)}
+        />
+      )}
+      {leaveOpen && (
+        <LeaveProjectDialog
+          projectId={project.id}
+          projectName={project.name}
+          open={leaveOpen}
+          onClose={() => setLeaveOpen(false)}
         />
       )}
     </>

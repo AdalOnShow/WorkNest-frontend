@@ -68,6 +68,17 @@ export const useAddMember = (projectId: string) => {
   });
 };
 
+export const useLeaveProject = (projectId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => projectService.leaveProject(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+    },
+  });
+};
+
 export const useRemoveMember = (projectId: string) => {
   const queryClient = useQueryClient();
   return useMutation<void, unknown, string>({

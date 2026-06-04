@@ -2,6 +2,7 @@
 
 import { AddMemberForm } from "@/components/projects/add-member-form";
 import { DeleteProjectDialog } from "@/components/projects/delete-project-dialog";
+import { LeaveProjectDialog } from "@/components/projects/leave-project-dialog";
 import { EditProjectSheet } from "@/components/projects/edit-project-sheet";
 import { MemberList } from "@/components/projects/member-list";
 import { TaskCreateSheet } from "@/components/tasks/task-create-sheet";
@@ -37,6 +38,7 @@ export default function ProjectDetailPage() {
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const editTimeoutRef = useRef<number | null>(null);
@@ -162,7 +164,7 @@ export default function ProjectDetailPage() {
           )}
         </div>
 
-        {isOwner && (
+        {isOwner ? (
           <div className="flex shrink-0 items-center gap-2">
             <Button variant="outline" onClick={openEditSheet}>
               <Edit2 className="mr-2 size-4" />
@@ -171,6 +173,12 @@ export default function ProjectDetailPage() {
             <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
               <Trash2 className="mr-2 size-4" />
               Delete
+            </Button>
+          </div>
+        ) : (
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="destructive" onClick={() => setLeaveOpen(true)}>
+              Leave project
             </Button>
           </div>
         )}
@@ -256,6 +264,14 @@ export default function ProjectDetailPage() {
           projectName={project.name}
           open={deleteOpen}
           onClose={() => setDeleteOpen(false)}
+        />
+      )}
+      {leaveOpen && (
+        <LeaveProjectDialog
+          projectId={project.id}
+          projectName={project.name}
+          open={leaveOpen}
+          onClose={() => setLeaveOpen(false)}
         />
       )}
 

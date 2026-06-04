@@ -48,6 +48,10 @@ export const projectService = {
     await api.delete(`/projects/${projectId}/members/${memberId}`);
   },
 
+  async leaveProject(projectId: string): Promise<void> {
+    await api.delete(`/projects/${projectId}/leave`);
+  },
+
   async searchUserByEmail(email: string): Promise<IUserSearchResult | null> {
     try {
       const res = await api.get<IApiResponse<IUserSearchResult>>(`/users/search?email=${encodeURIComponent(email)}`);
