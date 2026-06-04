@@ -17,10 +17,17 @@ import { format, isPast } from 'date-fns';
 import type { ITask, TaskPriority, TaskStatus } from '@/types/task.types';
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  LOW: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  MEDIUM: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-  HIGH: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
-  URGENT: 'bg-red-500/10 text-red-500 border-red-500/20',
+  LOW: 'bg-blue-500/15 text-blue-500 border-blue-500/25',
+  MEDIUM: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/25',
+  HIGH: 'bg-orange-500/15 text-orange-500 border-orange-500/25',
+  URGENT: 'bg-red-500/15 text-red-500 border-red-500/25',
+};
+
+const STATUS_COLORS: Record<TaskStatus, string> = {
+  TODO: 'bg-slate-500/15 text-slate-400 border-slate-500/25',
+  IN_PROGRESS: 'bg-blue-500/15 text-blue-500 border-blue-500/25',
+  IN_REVIEW: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/25',
+  DONE: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/25',
 };
 
 const STATUS_ICONS: Record<TaskStatus, typeof CircleCheckBig> = {
@@ -65,7 +72,7 @@ export function TaskCard({ task, projectId, currentUserRole, onClick }: TaskCard
           <Flag className="mr-1 size-3" />
           {task.priority}
         </Badge>
-        <Badge variant="outline" className="gap-1">
+        <Badge variant="outline" className={STATUS_COLORS[task.status] ?? 'bg-muted text-foreground border-border'}>
           <StatusIcon className="size-3" />
           {task.status.replace('_', ' ')}
         </Badge>

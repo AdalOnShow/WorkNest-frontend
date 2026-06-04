@@ -30,10 +30,17 @@ import type { ITaskMemberOption, TaskStatus } from '@/types/task.types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
 
 const PRIORITY_COLORS: Record<string, string> = {
-  LOW: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  MEDIUM: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-  HIGH: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
-  URGENT: 'bg-red-500/10 text-red-500 border-red-500/20',
+  LOW: 'bg-blue-500/15 text-blue-500 border-blue-500/25',
+  MEDIUM: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/25',
+  HIGH: 'bg-orange-500/15 text-orange-500 border-orange-500/25',
+  URGENT: 'bg-red-500/15 text-red-500 border-red-500/25',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  TODO: 'bg-slate-500/15 text-slate-400 border-slate-500/25',
+  IN_PROGRESS: 'bg-blue-500/15 text-blue-500 border-blue-500/25',
+  IN_REVIEW: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/25',
+  DONE: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/25',
 };
 
 const STATUS_OPTIONS: TaskStatus[] = [
@@ -75,6 +82,12 @@ export function TaskDetailSheet({
 
   const isOverdue = task?.deadline && task?.status !== 'DONE' && isPast(new Date(task.deadline));
   const isDone = task?.status === 'DONE';
+
+  const availableStatuses = (() => {
+    if (isPM) return STATUS_OPTIONS;
+    if (isAssignee) return STATUS_OPTIONS.filter((s) => s !== 'DONE');
+    return [];
+  })();
 
   useEffect(() => {
     if (!open) { setEditOpen(false); setDeleteOpen(false); }
@@ -123,7 +136,7 @@ export function TaskDetailSheet({
                     <Badge variant="outline" className={PRIORITY_COLORS[task.priority]}>
                       <Flag className="mr-1 size-3" /> {task.priority}
                     </Badge>
-                    <Badge variant="outline">
+                    <Badge variant="outline" className={STATUS_COLORS[task.status] ?? 'bg-muted text-foreground border-border'}>
                       {task.status.replace('_', ' ')}
                     </Badge>
                     {isOverdue && (
@@ -251,11 +264,11 @@ export function TaskDetailSheet({
                     </div>
                   )}
 
-                  {canUpdateStatus && (
+                  {availableStatuses.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Update status</p>
                       <div className="flex flex-wrap gap-2">
-                        {STATUS_OPTIONS.map((s) => (
+                        {availableStatuses.map((s) => (
                           <Button
                             key={s}
                             variant={task.status === s ? 'default' : 'outline'}
