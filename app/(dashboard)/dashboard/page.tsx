@@ -1,5 +1,8 @@
+"use client";
+
+import { useAuth } from "@/hooks/useAuth";
+import AdminDashboardPage from "./admin/page";
 import { FolderKanban, ListChecks, Timer, Users, Plus } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const stats = [
@@ -10,6 +13,12 @@ const stats = [
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+
+  if (user?.role === "ADMIN") {
+    return <AdminDashboardPage />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -37,12 +46,10 @@ export default function DashboardPage() {
         <p className="mb-6 mt-2 max-w-sm text-sm text-muted-foreground">
           Get started by creating a project to manage tasks, collaborate with your team, and track your progress.
         </p>
-        <Link href="/projects/new">
-          <Button>
-            <Plus className="mr-2 size-4" />
-            Create Project
-          </Button>
-        </Link>
+        <Button>
+          <Plus className="mr-2 size-4" />
+          Create Project
+        </Button>
       </section>
     </div>
   );

@@ -22,8 +22,8 @@ export interface AuthContextValue {
   user: IUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (data: ILoginInput) => Promise<void>;
-  register: (data: IRegisterInput) => Promise<void>;
+  login: (data: ILoginInput) => Promise<IUser>;
+  register: (data: IRegisterInput) => Promise<IUser>;
   logout: () => Promise<void>;
   updateProfile: (data: IUpdateProfileInput) => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -70,14 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("worknest:auth-expired", handleAuthExpired);
   }, []);
 
-  const login = useCallback(async (data: ILoginInput): Promise<void> => {
+  const login = useCallback(async (data: ILoginInput): Promise<IUser> => {
     const loggedInUser = await authService.login(data);
     setUser(loggedInUser);
+    return loggedInUser;
   }, []);
 
-  const register = useCallback(async (data: IRegisterInput): Promise<void> => {
+  const register = useCallback(async (data: IRegisterInput): Promise<IUser> => {
     const registeredUser = await authService.register(data);
     setUser(registeredUser);
+    return registeredUser;
   }, []);
 
   const logout = useCallback(async (): Promise<void> => {

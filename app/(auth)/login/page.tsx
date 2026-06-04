@@ -45,7 +45,7 @@ export default function LoginPage() {
     setFormError("");
 
     try {
-      await login(values);
+      const loggedInUser = await login(values);
       router.replace("/dashboard");
     } catch (error) {
       setFormError(getErrorMessage(error));
