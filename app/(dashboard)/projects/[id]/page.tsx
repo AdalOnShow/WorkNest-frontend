@@ -4,11 +4,15 @@ import { AddMemberForm } from "@/components/projects/add-member-form";
 import { DeleteProjectDialog } from "@/components/projects/delete-project-dialog";
 import { EditProjectSheet } from "@/components/projects/edit-project-sheet";
 import { MemberList } from "@/components/projects/member-list";
+import { TaskCreateSheet } from "@/components/tasks/task-create-sheet";
+import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
+import { TaskList } from "@/components/tasks/task-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProject } from "@/hooks/useProjects";
+import { useTaskMembers } from "@/hooks/useTasks";
 import { format } from "date-fns";
 import {
   Archive,
@@ -32,7 +36,10 @@ export default function ProjectDetailPage() {
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const editTimeoutRef = useRef<number | null>(null);
+  const { data: taskMembers = [] } = useTaskMembers(id);
 
   const openEditSheet = () => {
     if (editTimeoutRef.current) {
@@ -217,9 +224,12 @@ export default function ProjectDetailPage() {
         </TabsContent>
 
         <TabsContent value="tasks" className="mt-0">
-          <div className="flex min-h-75 items-center justify-center rounded-xl border border-dashed bg-card/50 text-center text-muted-foreground">
-            Tasks module coming soon
-          </div>
+          <TaskList
+            projectId={project.id}
+            projectName={project.name}
+            currentUserRole={project.currentUserRole || 'TEAM_MEMBER'}
+            onCreateTask={() => setCreateTaskOpen(true)}
+          />
         </TabsContent>
 
         <TabsContent value="members" className="mt-0 space-y-6">
@@ -246,6 +256,16 @@ export default function ProjectDetailPage() {
           onClose={() => setDeleteOpen(false)}
         />
       )}
+
+      <TaskCreateSheet projectId={project.id} open={createTaskOpen} onOpenChange={setCreateTaskOpen} />
+      <TaskDetailSheet
+        projectId={project.id}
+        taskId={selectedTaskId}
+        open={!!selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
+        currentUserRole={project.currentUserRole || 'TEAM_MEMBER'}
+        members={taskMembers}
+      />
     </div>
   );
 }
