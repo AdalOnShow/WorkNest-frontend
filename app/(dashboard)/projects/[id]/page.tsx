@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Edit2,
   FolderKanban,
+  Plus,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -229,6 +230,7 @@ export default function ProjectDetailPage() {
             projectName={project.name}
             currentUserRole={project.currentUserRole || 'TEAM_MEMBER'}
             onCreateTask={() => setCreateTaskOpen(true)}
+            onTaskClick={(taskId) => setSelectedTaskId(taskId)}
           />
         </TabsContent>
 
@@ -257,7 +259,16 @@ export default function ProjectDetailPage() {
         />
       )}
 
-      <TaskCreateSheet projectId={project.id} open={createTaskOpen} onOpenChange={setCreateTaskOpen} />
+      <TaskCreateSheet
+        projectId={project.id}
+        open={createTaskOpen}
+        onOpenChange={setCreateTaskOpen}
+        trigger={
+          <Button>
+            <Plus className="mr-2 size-4" /> New task
+          </Button>
+        }
+      />
       <TaskDetailSheet
         projectId={project.id}
         taskId={selectedTaskId}

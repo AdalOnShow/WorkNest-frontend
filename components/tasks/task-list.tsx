@@ -14,9 +14,10 @@ interface TaskListProps {
   projectName: string;
   currentUserRole: string;
   onCreateTask: () => void;
+  onTaskClick?: (taskId: string) => void;
 }
 
-export function TaskList({ projectId, projectName, currentUserRole, onCreateTask }: TaskListProps) {
+export function TaskList({ projectId, projectName, currentUserRole, onCreateTask, onTaskClick }: TaskListProps) {
   const [query, setQuery] = useState<ITaskQuery>({});
 
   const { data: tasks = [], isLoading, error } = useTasks(projectId, query);
@@ -71,6 +72,7 @@ export function TaskList({ projectId, projectName, currentUserRole, onCreateTask
               task={task}
               projectId={projectId}
               currentUserRole={currentUserRole}
+              onClick={() => onTaskClick?.(task.id)}
             />
           ))}
         </div>

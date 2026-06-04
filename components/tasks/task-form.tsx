@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,8 +33,7 @@ const taskFormSchema = z.object({
   description: z.string().trim().max(5000).optional(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE']).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  assigneeId: z.string().uuid().nullable().optional(),
-  deadline: z.string().nullable().optional(),
+  assigneeId: z.string().nullable().optional(),
 });
 
 export type FormData = z.infer<typeof taskFormSchema>;
@@ -42,7 +41,7 @@ export type FormData = z.infer<typeof taskFormSchema>;
 interface TaskFormProps {
   projectId: string;
   members: ITaskMemberOption[];
-  onSubmit: (data: FormData) => Promise<void>;
+  onSubmit: (data: FormData & { deadline: string | null }) => Promise<void>;
   initialData?: {
     title?: string;
     description?: string | null;
@@ -53,6 +52,8 @@ interface TaskFormProps {
   };
   submitLabel?: string;
   onCancel?: () => void;
+  isSubmitting?: boolean;
+  apiErrors?: Record<string, string[]>;
 }
 
 export function TaskForm({
@@ -62,6 +63,8 @@ export function TaskForm({
   initialData,
   submitLabel = 'Create Task',
   onCancel,
+  isSubmitting: externalSubmitting,
+  apiErrors = {},
 }: TaskFormProps) {
   const [showMemberSearch, setShowMemberSearch] = useState(false);
   const [date, setDate] = useState<Date | undefined>(
@@ -73,7 +76,7 @@ export function TaskForm({
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: internalSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
@@ -82,30 +85,52 @@ export function TaskForm({
       status: initialData?.status || 'TODO',
       priority: initialData?.priority || 'MEDIUM',
       assigneeId: initialData?.assigneeId || null,
-      deadline: initialData?.deadline || null,
     },
   });
 
-  useEffect(() => {
-    setValue('deadline', date ? format(date, 'yyyy-MM-dd') : null);
-  }, [date, setValue]);
+  const isSubmitting = externalSubmitting ?? internalSubmitting;
 
   const assigneeId = watch('assigneeId');
   const assignedMember = members.find((m) => m.id === assigneeId);
+  const deadlineFieldError = apiErrors.deadline?.[0];
 
   const unassign = () => {
     setValue('assigneeId', null);
-    setShowMemberSearch(false);
   };
 
+  const getFieldError = (field: string) => apiErrors[field]?.[0];
+
+  const handleFormSubmit = handleSubmit(async (raw) => {
+    if (!date) {
+      toast.error('Deadline is required');
+      return;
+    }
+    const payload = {
+      ...raw,
+      deadline: format(date, 'yyyy-MM-dd'),
+    };
+    await onSubmit(payload);
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleFormSubmit} className="space-y-4">
+      {/* General server errors */}
+      {(apiErrors.root?.length || apiErrors.title?.length) && (
+        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-500">
+          {apiErrors.root?.map((msg, i) => <p key={`root-${i}`}>{msg}</p>)}
+          {apiErrors.title?.map((msg, i) => <p key={`title-${i}`}>{msg}</p>)}
+        </div>
+      )}
+
       {/* Title */}
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input id="title" {...register('title')} placeholder="Enter task title" />
         {errors.title && (
           <p className="text-sm text-red-500">{errors.title.message}</p>
+        )}
+        {!errors.title && getFieldError('title') && (
+          <p className="text-sm text-red-500">{getFieldError('title')}</p>
         )}
       </div>
 
@@ -179,57 +204,66 @@ export function TaskForm({
             </Button>
           </div>
         ) : (
-          <Popover open={showMemberSearch} onOpenChange={setShowMemberSearch}>
-          <PopoverTrigger>
-            <Button variant="outline" className="w-full justify-between">
-              {assignedMember
-                  ? assignedMember.name
-                  : 'Select assignee'}
-                <ChevronDown className="size-4" />
-            </Button>
-          </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search members…" />
-                <CommandEmpty>No member found.</CommandEmpty>
-                <CommandGroup>
-                  {members.map((m) => (
-                    <CommandItem
-                      key={m.id}
-                      onSelect={() => {
-                        setValue('assigneeId', m.id);
-                        setShowMemberSearch(false);
-                      }}
-                    >
-                      <Avatar className="mr-2 size-6">
-                        <AvatarImage src={m.avatarUrl || undefined} />
-                        <AvatarFallback className="text-[10px]">
-                          {m.name[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm">{m.name}</p>
-                        <p className="text-xs text-muted-foreground">{m.email}</p>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <>
+            <Popover open={showMemberSearch} onOpenChange={setShowMemberSearch}>
+              <PopoverTrigger
+                render={
+                  <Button variant="outline" className="w-full justify-between">
+                    {assignedMember
+                        ? assignedMember.name
+                        : 'Select assignee'}
+                      <ChevronDown className="size-4" />
+                  </Button>
+                }
+              />
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search members…" />
+                  <CommandEmpty>No member found.</CommandEmpty>
+                  <CommandGroup>
+                    {members.map((m) => (
+                      <CommandItem
+                        key={m.id}
+                        onSelect={() => {
+                          setValue('assigneeId', m.id);
+                          setShowMemberSearch(false);
+                        }}
+                      >
+                        <Avatar className="mr-2 size-6">
+                          <AvatarImage src={m.avatarUrl || undefined} />
+                          <AvatarFallback className="text-[10px]">
+                            {m.name[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm">{m.name}</p>
+                          <p className="text-xs text-muted-foreground">{m.email}</p>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {getFieldError('assigneeId') && (
+              <p className="text-sm text-red-500">{getFieldError('assigneeId')}</p>
+            )}
+          </>
         )}
       </div>
 
       {/* Deadline */}
       <div className="space-y-2">
-        <Label>Deadline (optional)</Label>
+        <Label>Deadline (required)</Label>
         <Popover>
-            <PopoverTrigger>
+          <PopoverTrigger
+            render={
               <Button variant="outline" className="w-full justify-start text-left font-normal">
-               <CalendarIcon className="mr-2 size-4" />
-                {date ? format(date, 'PPP') : 'No deadline'}
+                <CalendarIcon className="mr-2 size-4" />
+                {date ? format(date, 'PPP') : 'Pick a deadline'}
               </Button>
-            </PopoverTrigger>
+            }
+          />
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar mode="single" selected={date} onSelect={setDate} />
             {date && (
@@ -246,6 +280,12 @@ export function TaskForm({
             )}
           </PopoverContent>
         </Popover>
+        {!date && (
+          <p className="text-sm text-red-500">Deadline is required</p>
+        )}
+        {!!deadlineFieldError && (
+          <p className="text-sm text-red-500">{deadlineFieldError}</p>
+        )}
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
