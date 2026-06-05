@@ -33,8 +33,14 @@ export function TaskCreateSheet({ projectId, trigger, open: controlledOpen, onOp
 
   const [apiErrors, setApiErrors] = useState<Record<string, string[]>>({});
 
-  const handleSubmit = async (data: FormData & { deadline: string }) => {
+  const handleSubmit = async (data: FormData & { deadline: string | null }) => {
     setApiErrors({});
+
+    if (!data.deadline) {
+      toast.error('Deadline is required');
+      return;
+    }
+
     try {
       await createTask.mutateAsync(data as ICreateTaskInput);
       toast.success('Task created');
