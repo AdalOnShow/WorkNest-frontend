@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { FolderKanban, LayoutDashboard, LogOut, Settings, UserCircle, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <h1 className="text-lg font-semibold">WorkNest</h1>
             </div>
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <Link href="/settings" className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
                 <Avatar>
                   {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}

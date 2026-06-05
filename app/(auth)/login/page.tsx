@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -34,10 +34,11 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [formError, setFormError] = useState("");
   const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({
+  register;
+  handleSubmit;
+  setValue;
+  formState: { errors, isSubmitting };
+} = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
