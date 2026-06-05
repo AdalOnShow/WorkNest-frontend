@@ -8,6 +8,8 @@ import { MemberList } from "@/components/projects/member-list";
 import { TaskCreateSheet } from "@/components/tasks/task-create-sheet";
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
 import { TaskList } from "@/components/tasks/task-list";
+import { ActivityFeed } from "@/components/activity/activity-feed";
+import { useProjectActivity } from "@/hooks/useActivityLog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,6 +37,7 @@ export default function ProjectDetailPage() {
   const router = useRouter();
 
   const { data: project, isLoading, error } = useProject(id);
+  const { data: activityData, isLoading: activityLoading } = useProjectActivity(id, 10);
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -225,9 +228,11 @@ export default function ProjectDetailPage() {
 
             <div className="rounded-xl border bg-card p-6 shadow-sm">
               <h3 className="mb-4 font-semibold">Recent Activity</h3>
-              <div className="flex h-25 items-center justify-center text-sm text-muted-foreground">
-                Activity log coming soon
-              </div>
+              <ActivityFeed
+                logs={activityData?.data}
+                isLoading={activityLoading}
+                emptyMessage="No activity logged for this project yet."
+              />
             </div>
           </div>
         </TabsContent>

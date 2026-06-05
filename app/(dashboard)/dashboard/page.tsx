@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import AdminDashboardPage from "./admin/page";
 import { FolderKanban, ListChecks, Timer, Users, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RecentActivitySection } from "@/components/dashboard/recent-activity-section";
 
 const stats = [
   { label: "Active projects", value: "0", icon: FolderKanban },
@@ -37,6 +38,8 @@ export default function DashboardPage() {
           </section>
         ))}
       </div>
+
+      <RecentActivitySection />
 
       <section className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-12 text-center">
         <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-primary/10">
