@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     "productivity",
     "worknest",
   ],
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
