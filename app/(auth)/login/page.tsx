@@ -5,13 +5,37 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+
+type RoleDemo = {
+  email: string;
+  password: string;
+  label: string;
+};
+
+const DEMO_CREDENTIALS: ReadonlyArray<RoleDemo> = [
+  {
+    email: "admin@worknest.dev",
+    password: "Admin@worknest8",
+    label: "Admin",
+  },
+  {
+    email: "jordan@worknest.dev",
+    password: "PM@worknest8",
+    label: "Project Manager",
+  },
+  {
+    email: "skyler@worknest.dev",
+    password: "TM@worknest8",
+    label: "Team Member",
+  },
+];
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -34,13 +58,15 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [formError, setFormError] = useState("");
   const {
-  register;
-  handleSubmit;
-  setValue;
-  formState: { errors, isSubmitting };
-} = useForm<LoginFormValues>({
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
+
+  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
 
   const onSubmit = async (values: LoginFormValues) => {
     setFormError("");
@@ -96,6 +122,37 @@ export default function LoginPage() {
           <ArrowRight className="size-4" />
         </Button>
       </form>
+
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => setShowDemoCredentials((prev) => !prev)}
+          className="flex items-center justify-between w-full text-sm text-muted-foreground hover:text-foreground"
+        >
+          <span>Demo accounts</span>
+          <span className="ml-2">{showDemoCredentials ? "Hide" : "Show"}</span>
+        </button>
+
+        {showDemoCredentials && (
+          <div className="mt-2 flex flex-col gap-2">
+            {DEMO_CREDENTIALS.map((credential) => (
+              <Button
+                key={credential.email}
+                type="button"
+                variant="outline"
+                className="h-10 w-full"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setValue("email", credential.email);
+                  setValue("password", credential.password);
+                }}
+              >
+                {credential.label}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
     </AuthShell>
   );
 }
